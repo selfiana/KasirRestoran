@@ -1,0 +1,32 @@
+<?php
+session_start();
+include "koneksi.php";
+$sid = $_SESSION["user_id"];
+$total = 0;
+// fungsi untuk mendapatkan isi keranjang belanja
+function isi_keranjang(){
+$isikeranjang = array();
+$sid = $_SESSION["user_id"];
+$koneksi = mysqli_connect("localhost", "root", "", "kasir_restoran_selfi");
+$sql = mysqli_query($koneksi, "SELECT * FROM keranjang WHERE
+id_user='$sid'");
+while ($r=mysqli_fetch_array($sql)) {
+$isikeranjang[] = $r;
+}
+return $isikeranjang;
+}
+$tgl_skrg = date("Ymd");
+
+// simpan data pemesanan
+mysqli_query($koneksi,"INSERT INTO pembelian(tgl_beli) VALUES ('$tgl_skrg')");
+// mendapatkan nomor orders dari tabel order
+$id_orders=mysql_insert_id();
+// panggil fungsi isi_keranjang dan hitung jumlah produk yang dipesan 
+$isikeranjang = isi_keranjang();
+$jml = count($isikeranjang);
+// simpan data detail pemesanan
+for ($i = 0; $i < $jml; $i++){
+mysqli_query($koneksi, "INSERT INTO detail_beli(id_beli, id_masakan, jumlah)
+VALUES('$id_orders',{$isikeranjang[$i]['id_masakan']},
+{$isikeranjang[$i]['jumlah']})");
+}
